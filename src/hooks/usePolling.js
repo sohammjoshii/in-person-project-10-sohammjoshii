@@ -14,12 +14,41 @@ import { useEffect, useRef } from 'react';
  * @param {boolean} enabled - Whether polling is enabled
  * @returns {object} - { refresh }
  */
+/*
 export function usePolling(callback, interval = 30000, enabled = true) {
   // TODO: Implement polling logic
 
   const refresh = () => {
     // TODO: Manual refresh implementation
     callback();
+  };
+
+  return { refresh };
+}
+*/
+
+export function usePolling(callback, interval = 30000, enabled = true) {
+  const savedCallback = useRef(callback);
+
+  // Always call the latest callback (it closes over the current city)
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    savedCallback.current(); // immediate first call
+
+    const intervalId = setInterval(() => {
+      savedCallback.current();
+    }, interval);
+
+    return () => clearInterval(intervalId); // cleanup on unmount
+  }, [interval, enabled]);
+
+  const refresh = () => {
+    savedCallback.current();
   };
 
   return { refresh };

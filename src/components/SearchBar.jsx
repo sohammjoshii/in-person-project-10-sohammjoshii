@@ -1,7 +1,27 @@
 import React, { useState } from 'react';
+import { useSearch } from '../hooks/useSearch';
+
+// Defined outside the component so it is the same function on every render
+async function searchCities(query, signal) {
+  const response = await fetch(
+    `http://localhost:3001/search?q=${encodeURIComponent(query)}`,
+    { signal }
+  );
+  const data = await response.json();
+  return data.results;
+}
 
 function SearchBar({ onCityChange }) {
   const [query, setQuery] = useState('');
+  const { results, loading, search } = useSearch(searchCities, 300);
+  const suggestions = results || [];
+
+  const handleSearch = (value) => {
+    setQuery(value);
+    search(value);
+  };
+
+  /*
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -30,10 +50,12 @@ function SearchBar({ onCityChange }) {
       setLoading(false);
     }
   };
+  */
 
   const handleSelectCity = (city) => {
     setQuery(city);
-    setSuggestions([]);
+    // setSuggestions([]);
+    search('');
     onCityChange(city);
   };
 
